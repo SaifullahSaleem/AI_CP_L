@@ -1,0 +1,95 @@
+# =============================================================================
+# GitHub Actions — Quality Gate Pipeline
+# =============================================================================
+# Triggers on every push to main branch.
+# Runs the evaluation suite and blocks deployment if quality scores
+# fall below the thresholds defined in eval_thresholds.json.
+#
+# Secrets Required (stored in GitHub Secrets):
+#   - GOOGLE_API_KEY
+#   - SERP_API_KEY
+#   - PINECONE_API_KEY
+#
+# NO secrets appear in this file — all injected via ${{ secrets.* }}
+# =============================================================================
+
+name: Quality Gate — Agent Evaluation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality-gate:
+    name: Run Evaluation Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # ── Step 1: Checkout code ──────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Step 2: Set up Python ──────────────────────────────────────────
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      # ── Step 3: Install dependencies ───────────────────────────────────
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # ── Step 4: Run evaluation script ──────────────────────────────────
+      - name: Run Quality Gate Evaluation
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          SERP_API_KEY: ${{ secrets.SERP_API_KEY }}
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+        run: |
+          echo "=========================================="
+          echo " Running Quality Gate Evaluation..."
+          echo "=========================================="
+          python run_eval.py
+          echo "=========================================="
+          echo " Evaluation complete."
+          echo "=========================================="
+
+      # ── Step 5: Upload results artifact ────────────────────────────────
+      - name: Upload evaluation results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results
+          path: eval_results.json
+          retention-days: 30
+
+      # ── Step 6: Display results summary ────────────────────────────────
+      - name: Display results summary
+        if: always()
+        run: |
+          echo ""
+          echo "=========================================="
+          echo " Evaluation Results:"
+          echo "=========================================="
+          if [ -f eval_results.json ]; then
+            python -c "
+          import json
+          with open('eval_results.json') as f:
+              r = json.load(f)
+          print(f'  Timestamp: {r[\"timestamp\"]}')
+          print(f'  Overall:   {\"PASS\" if r[\"overall_pass\"] else \"FAIL\"}')
+          print()
+          for metric, data in r['metrics'].items():
+              icon = 'PASS' if data['passed'] else 'FAIL'
+              print(f'  [{icon}] {metric}: {data[\"score\"]:.4f} (threshold: {data[\"threshold\"]})')
+          "
+          else
+            echo "  No results file found — evaluation may have crashed."
+          fi
+          echo "=========================================="

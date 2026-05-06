@@ -1,0 +1,50 @@
+# ── Secrets (NEVER include in image) ──────────────────────────────
+.env
+.env.*
+*.env
+secrets/
+research-paper-assistant.json
+firebase-credentials.json
+
+# ── Python artifacts ──────────────────────────────────────────────
+venv/
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+*.egg-info/
+dist/
+build/
+*.whl
+
+# ── Node / Frontend build artifacts ──────────────────────────────
+frontend/node_modules/
+frontend/dist/
+node_modules/
+package-lock.json
+
+# ── Docker ────────────────────────────────────────────────────────
+Dockerfile
+docker-compose.yml
+docker-compose*.yml
+
+# ── IDE / OS ──────────────────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# ── Git ───────────────────────────────────────────────────────────
+.git/
+.gitignore
+
+# ── CI/CD & Test artifacts ────────────────────────────────────────
+.github/
+eval_results.json
+test_e2e.sh
+test_e2e.ps1
+
+# ── Documentation ─────────────────────────────────────────────────
+README.md
+*.md

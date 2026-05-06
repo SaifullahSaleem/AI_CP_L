@@ -1,0 +1,17 @@
+{
+  "thresholds": {
+    "faithfulness": {
+      "min_score": 0.70,
+      "description": "Measures whether the answer is grounded in the retrieved context. At 0.70 we tolerate minor paraphrasing/synthesis but catch outright hallucinations. +10% (0.80) would fail on valid creative synthesis. -10% (0.60) would allow partially hallucinated content through."
+    },
+    "answer_relevancy": {
+      "min_score": 0.65,
+      "description": "Measures whether the answer addresses the user's question. Research questions are broad; the agent may provide useful tangential context. +10% (0.75) too strict for exploratory queries. -10% (0.55) would allow off-topic responses through."
+    }
+  },
+  "eval_config": {
+    "num_test_cases": 3,
+    "judge_model": "gemini-2.5-flash",
+    "timeout_seconds": 120
+  }
+}
